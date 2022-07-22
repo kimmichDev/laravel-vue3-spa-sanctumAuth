@@ -10,8 +10,8 @@
         <table class="table hover" v-if="books">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Title</th>
+                    <th @click="sortChange('id')">No</th>
+                    <th @click="sortChange('title')">Title</th>
                     <th>User</th>
                 </tr>
             </thead>
@@ -43,6 +43,10 @@ export default {
     components: { Pagination },
     setup() {
         let books = ref("");
+        let api = ref("/api/book?page=1");
+
+        let column = ref("id");
+        let sort = ref("asc");
 
         let store = useStore();
         let router = useRouter();
@@ -53,25 +57,53 @@ export default {
             store.dispatch("setAuth", null);
         };
 
-        let getBooks = async (url = "/api/book") => {
+        let getBooks = async () => {
             await axios.get("/sanctum/csrf-cookie"); //for csrf sap sanctum
             try {
-                let response = await axios.get(url);
+                let response = await axios.get(api.value, {
+                    params: {
+                        column: column.value,
+                        sort: sort.value,
+                    },
+                });
                 books.value = response.data.data;
             } catch (error) {
-                (error.response.status == 401 ||
-                    error.response.status == 419) &&
+                if (
+                    error.response.status == 401 ||
+                    error.response.status == 419
+                ) {
                     router.push({ name: "login" });
+                    store.dispatch("setAuth", null);
+                }
+                console.log(error);
             }
         };
 
-        let linkchange = (url) => {
-            getBooks(url);
+        let linkchange = async (url) => {
+            api.value = url;
+            await getBooks();
         };
+
+        let sortChange = async (newColumn) => {
+            column.value = newColumn;
+            sort.value = sort.value == "asc" ? "desc" : "asc";
+            await getBooks();
+        };
+
         onMounted(async () => {
             await getBooks();
         });
-        return { logoutHandle, store, books, getBooks, linkchange };
+
+        return {
+            logoutHandle,
+            store,
+            books,
+            getBooks,
+            linkchange,
+            column,
+            sort,
+            sortChange,
+        };
     },
 };
 </script>

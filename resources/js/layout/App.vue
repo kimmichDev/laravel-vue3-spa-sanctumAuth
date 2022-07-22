@@ -63,8 +63,32 @@
 </template>
 
 <script>
+import { onMounted } from "@vue/runtime-core";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 export default {
     setup() {
+        let router = useRouter();
+        let store = useStore();
+        onMounted(async () => {
+            await axios.get("/sanctum/csrf-cookie"); //for csrf sap sanctum
+            try {
+                let response = await axios.get("/api/user");
+                store.dispatch("setAuth", {
+                    name: response.data.name,
+                    email: response.data.email,
+                });
+            } catch (error) {
+                if (
+                    error.response.status == 401 ||
+                    error.response.status == 419
+                ) {
+                    store.dispatch("setAuth", null);
+                }
+                console.log(error);
+            }
+        });
         return {};
     },
 };

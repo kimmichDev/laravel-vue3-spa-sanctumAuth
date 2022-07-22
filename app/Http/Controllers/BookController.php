@@ -12,12 +12,15 @@ class BookController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         // $books = Book::with(["user" => fn ($q) => $q->select("id", "name")])->paginate(7, ["id", "title", "user_id"]);
 
+        $column = $request->column ?? "id";
+        $sort = $request->sort ?? "asc";
 
-        $books = Book::with(["user:id,name"])->paginate(7, ["id", "title", "user_id"]);
+
+        $books = Book::with(["user:id,name"])->orderBy($column, $sort)->paginate(7, ["id", "title", "user_id"]);
 
         return response()->json([
             "message" => "Success",

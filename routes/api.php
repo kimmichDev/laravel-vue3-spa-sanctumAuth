@@ -26,4 +26,4 @@ Route::post("register", [RegisterController::class, "store"]);
 Route::post("login", [LoginController::class, "login"]);
 Route::post("logout", [LogOutController::class, "logout"]);
 
-Route::apiResource("book", BookController::class)->middleware('auth:sanctum');
+Route::apiResource("book", BookController::class);
